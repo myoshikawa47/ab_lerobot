@@ -19,7 +19,8 @@ from pathlib import Path
 from rosbags.typesys import get_types_from_idl, get_types_from_msg
 
 # from lerobot.configs import parser
-from lerobot.common.datasets.lerobot_dataset import LeRobotDataset
+# from lerobot.common.datasets.lerobot_dataset import LeRobotDataset
+from lerobot.datasets.lerobot_dataset import LeRobotDataset
 sys.path.append('./scripts')
 from features import airec_basic_features
 
@@ -79,24 +80,38 @@ def main(args):
         '/teleop/head_joint_states',
         '/zed2i/zed_node/stereo/image_rect_color/compressed',
         '/zed2i/zed_node/stereo_raw/image_raw_color/compressed',
+        #
+        # ↓ topic names of Ab in ogata lab
+        #
+        '/maharo/upperbody_left/joint_states',
+        '/maharo/upperbody_right/joint_states',
+        '/teleop/left_joint_states',
+        '/teleop/right_joint_states',
+        '/zed/zed_node/left/image_rect_color',
+        '/zed/zed_node/right/image_rect_color', 
         ]
 
     for file in files:
         print(file)
         frames = []
         last_frame = {
+            #image
             'observation.image.head.left': None,
             'observation.image.head.right': None,
             'observation.image.arm.left': None,
             'observation.image.arm.right': None,
+            # position
             'observation.state.head': None,
             'observation.state.left_arm.pos': None,
             'observation.state.right_arm.pos': None,
             'observation.state.base': None,
+            # effort
             'observation.state.left_arm.effort': None,
             'observation.state.right_arm.effort': None,
+            # tactile
             'observation.state.left_arm.tactile': None,
             'observation.state.right_arm.tactile': None,
+            # action
             'action.head': None,
             'action.left_arm': None,
             'action.right_arm': None,
@@ -141,7 +156,6 @@ def main(args):
                                 msg = typestore.deserialize_ros1(rawdata, connection.msgtype)
                                 np_arr = np.frombuffer(msg.data, np.uint8)
                                 np_img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-                                import ipdb;ipdb.set_trace()
                                 current_frame['observation.image.arm.left'] = cv2.rotate(np_img[:360].astype(np.uint8), cv2.ROTATE_180) # all images have to be the same shape
                                 # current_frame['observation.image.arm.right'] = cv2.resize(cv2.rotate(np_img[:360].astype(np.uint8), cv2.ROTATE_180), (64, 36)) # all images have to be the same shape
                             
@@ -149,14 +163,12 @@ def main(args):
                                 msg = typestore.deserialize_ros1(rawdata, connection.msgtype)
                                 np_arr = np.frombuffer(msg.data, np.uint8)
                                 np_img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-                                import ipdb;ipdb.set_trace()
                                 current_frame['observation.image.arm.right'] = cv2.rotate(np_img[:360].astype(np.uint8), cv2.ROTATE_180) # all images have to be the same shape
                                 # current_frame['observation.image.arm.right'] = cv2.resize(cv2.rotate(np_img[:360].astype(np.uint8), cv2.ROTATE_180), (64, 36)) # all images have to be the same shape
                             
                             # observation.state
                             if connection.topic == "/maharo/upperbody_head/online_joint_states":
                                 msg = typestore.deserialize_ros1(rawdata, connection.msgtype)
-                                import ipdb;ipdb.set_trace()
                                 current_frame['observation.state.head'] = msg.position
                                 
                             if connection.topic == "/maharo1/left_arm/upperbody/online_joint_states":
@@ -201,23 +213,57 @@ def main(args):
                                 current_frame['action.base'] = msg.position
                             # リーダのjoint stateをactionとしたほうが良いかも
                             
+                            
+                            
+                            # topics of Ab in ogata lab
+                            if connection.topic == "/maharo/upperbody_left/joint_states":
+                                msg = typestore.deserialize_ros1(rawdata, connection.msgtype)
+                                current_frame['observation.state.left_arm.pos'] = msg.position
+                                current_frame['observation.state.left_arm.effort'] = msg.effort
+                            
+                            if connection.topic == "/maharo/upperbody_right/joint_states":
+                                msg = typestore.deserialize_ros1(rawdata, connection.msgtype)
+                                current_frame['observation.state.right_arm.pos'] = msg.position
+                                current_frame['observation.state.right_arm.effort'] = msg.effort
+                                
+                            if connection.topic == "/teleop/left_joint_states":
+                                msg = typestore.deserialize_ros1(rawdata, connection.msgtype)
+                                current_frame['action.left_arm'] = msg.position
+
+                            if connection.topic == "/teleop/right_joint_states":
+                                msg = typestore.deserialize_ros1(rawdata, connection.msgtype)
+                                current_frame['action.right_arm'] = msg.position
+                            
                             break
                 
-                # if 'action.base' not in current_frame.keys():
-                #     current_frame['action.base'] = np.zeros(3)
-                print('============================SKIP============================')
-                # import ipdb;ipdb.set_trace()
-                # current_frame['action'] = np.concatenate([current_frame['action.right_arm'], current_frame['action.base']])
-                # current_frame = {k: v for k, v in current_frame.items() if k in ['observation.image.head.left', 'observation.image.arm.right', 'observation.state', 'action']}
+                import ipdb;ipdb.set_trace()
+                frame_to_append = dict()
+                frame_to_append['observation.image.head.left'] = current_frame['observation.image.head.left']
+                frame_to_append['observation.image.head.right'] = current_frame['observation.image.head.right']
+                frame_to_append['observation.image.arm.left'] = current_frame['observation.image.arm.left']
+                frame_to_append['observation.image.arm.right'] = current_frame['observation.image.arm.right']
+                # concatenate state and action respectively
+                frame_to_append['observation.state'] = np.concatenate([
+                    current_frame['observation.state.head'], 
+                    current_frame['observation.state.left_arm.pos'], 
+                    current_frame['observation.state.right_arm.pos'],
+                    current_frame['observation.state.base'],
+                    ])
+                frame_to_append['action'] = np.concatenate([
+                    current_frame['action.head'], 
+                    current_frame['action.left_arm'], 
+                    current_frame['action.right_arm'], 
+                    current_frame['action.base'], 
+                    ])
+                frame_to_append['next.done'] = torch.tensor(False, dtype=torch.bool)
                 
-                # current_frame['next.done'] = torch.tensor(False, dtype=torch.bool)
-                frames.append(current_frame)
+                frames.append(frame_to_append)
                 last_frame = current_frame
 
                 # To the next time step
                 current_time += nano_period
             
-            # frames[-1]['next.done'] = torch.tensor(True, dtype=torch.bool)
+            frames[-1]['next.done'] = torch.tensor(True, dtype=torch.bool)
             for frame in frames:
                 dataset.add_frame(frame, task=episode_task)
 

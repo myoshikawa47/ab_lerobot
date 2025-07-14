@@ -76,6 +76,7 @@ dependencies = [
     "zarr>=2.17.0",
     "rosbags (>=0.10.10,<0.11.0)",
     "ipdb (>=0.13.13,<0.14.0)",
+    "matplotlib (>=3.10.3,<4.0.0)",
 ]
 
 [project.optional-dependencies]

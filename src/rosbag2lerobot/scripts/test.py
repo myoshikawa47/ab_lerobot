@@ -10,13 +10,15 @@ from pathlib import Path
 import imageio
 import torch
 
-from lerobot.common.datasets.lerobot_dataset import (
+from lerobot.datasets.lerobot_dataset import (
     LeRobotDataset,
     LeRobotDatasetMetadata,
     MultiLeRobotDataset,
 )
 from lerobot.scripts.visualize_dataset import EpisodeSampler
-from lerobot.common.policies.diffusion.modeling_diffusion import DiffusionPolicy
+from lerobot.policies.diffusion.modeling_diffusion import DiffusionPolicy
+from lerobot.policies.smolvla.modeling_smolvla import SmolVLAPolicy
+# from work.tmp.lerobot.policies.smolvla import smolvlm_with_expert
 
 # from eipl.utils import restore_args, tensor2numpy, deprocess_img, normalization, resize_img
 
@@ -44,7 +46,9 @@ device = 'cpu' if args.device < 0 else f"cuda:{args.device}"
 # OR a path to a local outputs/train folder.
 pretrained_policy_path = args.ckpt_folder
 
-policy = DiffusionPolicy.from_pretrained(pretrained_policy_path)
+# policy = DiffusionPolicy.from_pretrained(pretrained_policy_path)
+# policy = SmolVLAPolicy.from_pretrained(pretrained_policy_path)
+policy = SmolVLAPolicy.from_pretrained("lerobot/smolvla_base")
 policy.to(device)
 
 # We can verify that the shapes of the features expected by the policy match the ones from the observations
@@ -59,10 +63,15 @@ print(policy.config.output_features)
 policy.reset()
 
 # Load data
-dataset = LeRobotDataset('null', root=args.data_dir)
+# dataset = LeRobotDataset('null', root=args.data_dir)
+dataset = LeRobotDataset('lerobot/svla_so100_stacking')
 start = dataset.episode_data_index['from'][args.idx].item()
 end = dataset.episode_data_index['to'][args.idx].item()
-frames = [{k: v.to(device) for k, v in dataset[i].items() if type(v)==torch.Tensor} for i in range(start, end)]
+frames = [dataset[i] for i in range(start, end)]
+for k, v in frames[0].items():
+    if type(v)==torch.Tensor:
+        for frame in frames: 
+            frame[k] = frame[k].to(device)
 nloop = len(frames)
 
 def save_gt(frame):
@@ -71,7 +80,6 @@ def save_gt(frame):
 # Inference
 actions_list = []
 key_list = []
-state = None
 for loop_ct in range(nloop):
     frame = frames[loop_ct]
     save_gt(frame)
@@ -89,7 +97,7 @@ fig, ax = plt.subplots(1, 4, figsize=(24, 6), dpi=60)
 ax = ax.flatten()
 
 gt = dict()
-gt = {k: np.array([frame[k].cpu() for frame in frames]) for k in frames[0].keys()}
+gt = {k: np.array([frame[k].cpu() for frame in frames]) for k, v in frames[0].keys() if type(v)==torch.Tensor}
 
 def anim_update(i):
     for j in range(2):
