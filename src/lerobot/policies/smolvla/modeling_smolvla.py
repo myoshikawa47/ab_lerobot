@@ -63,7 +63,7 @@ import torch.nn.functional as F  # noqa: N812
 from torch import Tensor, nn
 from transformers import AutoProcessor
 
-from lerobot.constants import ACTION, OBS_STATE
+from lerobot.constants import ACTION, ACTION_LIST, OBS_STATE, OBS_STATE_LIST, OBS_IMAGE_LIST
 from lerobot.policies.normalize import (
     Normalize,
     Unnormalize,
@@ -456,7 +456,8 @@ class SmolVLAPolicy(PreTrainedPolicy):
         state = self.prepare_state(batch)
         lang_tokens, lang_masks = self.prepare_language(batch)
         actions = self.prepare_action(batch)
-        actions_is_pad = batch.get("actions_id_pad")
+        # actions_is_pad = batch.get("actions_id_pad")
+        actions_is_pad = batch.get("action_is_pad")
         loss_dict = {}
         losses = self.model.forward(images, img_masks, lang_tokens, lang_masks, state, actions, noise, time)
         loss_dict["losses_after_forward"] = losses.clone()
@@ -482,9 +483,8 @@ class SmolVLAPolicy(PreTrainedPolicy):
         """
         images = []
         img_masks = []
-        present_img_keys = [key for key in self.config.image_features if key in batch]
-        missing_img_keys = [key for key in self.config.image_features if key not in batch]
-
+        present_img_keys = [key for key in self.config.image_features if key in batch]# and key in OBS_IMAGE_LIST]
+        missing_img_keys = [key for key in self.config.image_features if key not in batch]# and key in OBS_IMAGE_LIST]
         if len(present_img_keys) == 0:
             raise ValueError(
                 f"All image features are missing from the batch. At least one expected. (batch: {batch.keys()}) (image_features:{self.config.image_features})"
@@ -571,12 +571,14 @@ class SmolVLAPolicy(PreTrainedPolicy):
 
     def prepare_state(self, batch):
         """Pad state"""
+        # batch[OBS_STATE] = torch.cat([batch[k] for k in OBS_STATE_LIST], dim=-1)
         state = batch[OBS_STATE][:, -1, :] if batch[OBS_STATE].ndim > 2 else batch[OBS_STATE]
         state = pad_vector(state, self.config.max_state_dim)
         return state
 
     def prepare_action(self, batch):
         """Pad action"""
+        # batch[ACTION] = torch.cat([batch[k] for k in ACTION_LIST], dim=-1)
         actions = pad_vector(batch[ACTION], self.config.max_action_dim)
         return actions
 

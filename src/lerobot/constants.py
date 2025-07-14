@@ -19,9 +19,12 @@ from huggingface_hub.constants import HF_HOME
 
 OBS_ENV_STATE = "observation.environment_state"
 OBS_STATE = "observation.state"
+OBS_STATE_LIST = ["observation.state.head", "observation.state.left_arm.pos", "observation.state.right_arm.pos"]
 OBS_IMAGE = "observation.image"
 OBS_IMAGES = "observation.images"
+OBS_IMAGE_LIST = ["observation.image.head.right", "observation.image.arm.left", "observation.image.arm.right"]
 ACTION = "action"
+ACTION_LIST = ["action.head", "action.left_arm", "action.right_arm"]
 REWARD = "next.reward"
 
 ROBOTS = "robots"

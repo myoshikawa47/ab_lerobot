@@ -19,6 +19,7 @@ from lerobot.scripts.visualize_dataset import EpisodeSampler
 # argument parser
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_dir", type=str, default=None)
+parser.add_argument("--out_dir", type=str, default=None)
 parser.add_argument("--device", type=int, default=0)
 parser.add_argument("--idx", type=int, default=0)
 parser.add_argument("--webp", action="store_true")
@@ -26,7 +27,7 @@ args = parser.parse_args()
 
 
 # Create a directory to store the video of the evaluation
-output_directory = Path("outputs/test/vis_dataset")
+output_directory = Path(args.out_dir)
 output_directory.mkdir(parents=True, exist_ok=True)
 
 # Select your device
@@ -56,22 +57,22 @@ def anim_update(i):
         ax[j].cla()
 
     # plot camera image
-    ax[0].imshow(np.transpose(gt['observation.image.head.left'][i, :, ::10, ::10], (1, 2, 0)))
+    ax[0].imshow(np.transpose(gt['observation.image.head.left'][i, ::-1, ::10, ::10], (1, 2, 0)))
     ax[0].axis("off")
     ax[0].set_title("observation.image.head.left")
 
     # plot camera image
-    ax[1].imshow(np.transpose(gt['observation.image.head.right'][i, :, ::10, ::10], (1, 2, 0)))
+    ax[1].imshow(np.transpose(gt['observation.image.head.right'][i, ::-1, ::10, ::10], (1, 2, 0)))
     ax[1].axis("off")
     ax[1].set_title("observation.image.head.right")
 
     # plot camera image
-    ax[2].imshow(np.transpose(gt['observation.image.arm.left'][i, :, ::10, ::10], (1, 2, 0)))
+    ax[2].imshow(np.transpose(gt['observation.image.arm.left'][i, ::-1, ::10, ::10], (1, 2, 0)))
     ax[2].axis("off")
     ax[2].set_title("observation.image.arm.left")
 
     # plot camera image
-    ax[3].imshow(np.transpose(gt['observation.image.arm.right'][i, :, ::10, ::10], (1, 2, 0)))
+    ax[3].imshow(np.transpose(gt['observation.image.arm.right'][i, ::-1, ::10, ::10], (1, 2, 0)))
     ax[3].axis("off")
     ax[3].set_title("observation.image.arm.right")
 
