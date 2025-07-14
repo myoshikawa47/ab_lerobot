@@ -140,16 +140,16 @@ def train(cfg: TrainPipelineConfig):
         cfg=cfg.policy,
         ds_meta=dataset.meta,
     )
-    if cfg.policy.type in ['smolvla', 'pi0']:
-        # Override max state/action dim so that >32 DoF robot is compatible
-        cfg.policy.max_state_dim = cfg.policy.max_state_dim_override
-        cfg.policy.max_action_dim = cfg.policy.max_action_dim_override
-        policy.config = cfg.policy
-        policy.model.config = cfg.policy
-        policy.model.state_proj = torch.nn.Linear(policy.model.config.max_state_dim, policy.model.vlm_with_expert.config.text_config.hidden_size).to(device)
-        policy.model.action_in_proj = torch.nn.Linear(policy.model.config.max_action_dim, policy.model.vlm_with_expert.expert_hidden_size).to(device)
-        policy.model.action_out_proj = torch.nn.Linear(policy.model.vlm_with_expert.expert_hidden_size, policy.model.config.max_action_dim).to(device)
-    import ipdb;ipdb.set_trace()
+    # if cfg.policy.type in ['smolvla', 'pi0']:
+    #     # Override max state/action dim so that >32 DoF robot is compatible
+    #     cfg.policy.max_state_dim = cfg.policy.max_state_dim_override
+    #     cfg.policy.max_action_dim = cfg.policy.max_action_dim_override
+    #     policy.config = cfg.policy
+    #     policy.model.config = cfg.policy
+    #     policy.model.state_proj = torch.nn.Linear(policy.model.config.max_state_dim, policy.model.vlm_with_expert.config.text_config.hidden_size).to(device)
+    #     policy.model.action_in_proj = torch.nn.Linear(policy.model.config.max_action_dim, policy.model.vlm_with_expert.expert_hidden_size).to(device)
+    #     policy.model.action_out_proj = torch.nn.Linear(policy.model.vlm_with_expert.expert_hidden_size, policy.model.config.max_action_dim).to(device)
+    # import ipdb;ipdb.set_trace()
 
     logging.info("Creating optimizer and scheduler")
     optimizer, lr_scheduler = make_optimizer_and_scheduler(cfg, policy)

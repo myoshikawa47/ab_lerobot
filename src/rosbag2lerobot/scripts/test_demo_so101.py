@@ -46,7 +46,9 @@ device = 'cpu' if args.device < 0 else f"cuda:{args.device}"
 # OR a path to a local outputs/train folder.
 pretrained_policy_path = args.ckpt_folder
 
+# policy = DiffusionPolicy.from_pretrained(pretrained_policy_path)
 policy = SmolVLAPolicy.from_pretrained(pretrained_policy_path)
+# policy = SmolVLAPolicy.from_pretrained("lerobot/smolvla_base")
 policy.to(device)
 
 # We can verify that the shapes of the features expected by the policy match the ones from the observations
@@ -71,6 +73,7 @@ for k, v in frames[0].items():
         for frame in frames: 
             frame[k] = frame[k].unsqueeze(0).to(device)
 nloop = len(frames)
+# import ipdb; ipdb.set_trace()
 
 def save_gt(frame):
     return
@@ -91,40 +94,48 @@ for loop_ct in range(nloop):
 actions_np = np.array(actions_list).reshape(nloop, -1)
 
 # plot images
-fig, ax = plt.subplots(1, 4, figsize=(24, 6), dpi=60)
+# fig, ax = plt.subplots(1, 4, figsize=(24, 6), dpi=60)
+fig, ax = plt.subplots(1, 3, figsize=(18, 6), dpi=60)
 ax = ax.flatten()
 
 gt = dict()
 gt = {k: np.array([frame[k].squeeze(0).cpu() for frame in frames]) for k, v in frames[0].items() if type(v)==torch.Tensor}
+# import ipdb; ipdb.set_trace()
 def anim_update(i):
     for j in range(2):
         ax[j].cla()
 
     # plot camera image
-    ax[0].imshow(np.transpose(gt['observation.image.head.left'][i], (1, 2, 0)))
+    # ax[0].imshow(np.transpose(gt['observation.image.head.left'][i], (1, 2, 0)))
+    ax[0].imshow(np.transpose(gt['observation.images.top'][i], (1, 2, 0)))
     ax[0].axis("off")
-    ax[0].set_title("observation.image.head.left")
+    # ax[0].set_title("observation.image.head.left")
+    ax[0].set_title("observation.images.top")
 
     # plot camera image
-    ax[1].imshow(np.transpose(gt['observation.image.arm.right'][i], (1, 2, 0)))
+    # ax[1].imshow(np.transpose(gt['observation.image.arm.right'][i], (1, 2, 0)))
+    ax[1].imshow(np.transpose(gt['observation.images.wrist'][i], (1, 2, 0)))
     ax[1].axis("off")
-    ax[1].set_title("observation.image.arm.right")
+    # ax[1].set_title("observation.image.arm.right")
+    ax[1].set_title("observation.images.wrist")
 
     # plot joint angle
     ax[2].set_xlim(0, nloop)
-    ax[2].plot(gt['action'][:, :9], linestyle="dashed", c="k")
-    for joint_idx in range(9):
+    # ax[2].plot(gt['action'][:, :9], linestyle="dashed", c="k")
+    ax[2].plot(gt['action'], linestyle="dashed", c="k")
+    # for joint_idx in range(9):
+    for joint_idx in range(6):
         ax[2].plot(np.arange(i + 1), actions_np[: i + 1, joint_idx], c=f"C{joint_idx}")
     ax[2].set_xlabel("Step")
     ax[2].set_title("Joint angles")
     
-    # plot base angle
-    ax[3].set_xlim(0, nloop)
-    ax[3].plot(gt['action'][:, 9:], linestyle="dashed", c="k")
-    for joint_idx in range(9, 12):
-        ax[3].plot(np.arange(i + 1), actions_np[: i + 1, joint_idx], c=f"C{joint_idx}")
-    ax[3].set_xlabel("Step")
-    ax[3].set_title("Base angles")
+    # # plot base angle
+    # ax[3].set_xlim(0, nloop)
+    # ax[3].plot(gt['action'][:, 9:], linestyle="dashed", c="k")
+    # for joint_idx in range(9, 12):
+    #     ax[3].plot(np.arange(i + 1), actions_np[: i + 1, joint_idx], c=f"C{joint_idx}")
+    # ax[3].set_xlabel("Step")
+    # ax[3].set_title("Base angles")
 
 
 ani = anim.FuncAnimation(fig, anim_update, frames=nloop)
