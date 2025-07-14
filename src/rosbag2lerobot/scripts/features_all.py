@@ -61,16 +61,16 @@ airec_basic_features = {
         "dtype": "float64",
         "shape": (9,),
     },
-    'observation.state.base': {
-        "dtype": "float64",
-        "shape": (3,),
-    },
+    # 'observation.state.base': {
+    #     "dtype": "float64",
+    #     "shape": (3,),
+    # },
     # effort
-    'observation.state.left_arm.effort': {
+    'observation.state.left_arm.torque': {
         "dtype": "float64",
         "shape": (9,),
     },
-    'observation.state.right_arm.effort': {
+    'observation.state.right_arm.torque': {
         "dtype": "float64",
         "shape": (9,),
     },
@@ -96,10 +96,10 @@ airec_basic_features = {
         "dtype": "float64",
         "shape": (9,),
     },
-    'action.base': {
-        "dtype": "float64",
-        "shape": (3,),
-    },
+    # 'action.base': {
+    #     "dtype": "float64",
+    #     "shape": (3,),
+    # },
     # others
     "episode_index": {
         "dtype": "int64",
@@ -116,11 +116,11 @@ airec_basic_features = {
         "shape": [1],
         "names": None,
     },
-    "next.done": {
-        "dtype": "bool",
-        "shape": (1,),
-        "names": None,
-    },
+    # "next.done": {
+    #     "dtype": "bool",
+    #     "shape": (1,),
+    #     "names": None,
+    # },
     "index": {
         "dtype": "int64",
         "shape": [1],
