@@ -41,6 +41,13 @@ class SmolVLAConfig(PreTrainedConfig):
     # Shorter state and action vectors will be padded
     max_state_dim: int = 32
     max_action_dim: int = 32
+    
+    # Override max state/action dim so that >32 DoF robot is compatible
+    # max_state_dim, max_action_dim are overwitten after loading pretrained weight
+    print('TODO: decide max_state_dim')
+    exit()
+    max_state_dim_override: int = 100
+    max_action_dim_override: int = 100
 
     # Image preprocessing
     resize_imgs_with_padding: tuple[int, int] = (512, 512)
