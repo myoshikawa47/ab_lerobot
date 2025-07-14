@@ -4,7 +4,8 @@ version: "3.9"
 
 services:
   latest:
-    runtime: nvidia
+    # runtime: nvidia
+    gpus: all
     build:
       context: .
       dockerfile: ${TAG_NAME}/Dockerfile
