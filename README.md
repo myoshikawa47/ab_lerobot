@@ -1,3 +1,40 @@
+## LeRobot repository for training with AIREC-basic
+
+## 使い方
+
+### インストール
+`docker/README.md`を参照
+
+### rosbag2lerobot変換
+```bash
+cd src/rosbag2lerobot
+python3 ./scripts/1_rosbag2lerobot_wholebody.py --rosbag_dir path/to/rosbag/files --lerobot_dir path/to/output/dir
+```
+
+### LeRobot Datasetの可視化
+```bash
+cd src/rosbag2lerobot
+python3 ./scripts/vis_dataset.py --data_dir path/to/lerobot/data --out_dir path/to/output/dir --idx 0
+```
+
+### SmolVLAの学習
+```bash
+CUDA_VISIBLE_DEVICES=0 python -m lerobot.scripts.train --policy.path=lerobot/smolvla_base --dataset.root=path/to/lerobot/data  --policy.push_to_hub=false --wandb.enable=true --dataset.repo_id=null
+```
+
+### オフラインテスト
+```bash
+cd src/rosbag2lerobot
+python3 ./scripts/test.py --ckpt_folder path/to/ckpt/folder --data_dir path/to/lerobot/data --device 0 --idx 0
+```
+
+## メモ
+- カメラ画像は3つまで学習可能、4つ目以降は無視される
+
+## TODO
+- observation.state, actionをそれぞれcatする前の状態で保存しておき、引数などで指定したモダリティだけ取り出して学習できるようにしたい
+- 非同期推論の実装（https://github.com/huggingface/lerobot/tree/main/tests/async_inference?）
+
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="media/lerobot-logo-thumbnail.png">
