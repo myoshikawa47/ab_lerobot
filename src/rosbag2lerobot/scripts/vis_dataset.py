@@ -105,4 +105,4 @@ if args.webp:
     ani.save(os.path.join(output_directory, "{}_{}.webp".format(savename, args.idx)), fps=10, writer="ffmpeg")
 else:
     print('writing mp4')
-    ani.save(os.path.join(output_directory, "debug_{}.mp4".format(savename, args.idx)), fps=10, writer="ffmpeg")
+    ani.save(os.path.join(output_directory, "{}_{}.mp4".format(savename, args.idx)), fps=10, writer="ffmpeg")
