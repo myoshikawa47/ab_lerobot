@@ -1,7 +1,7 @@
 #!/bin/bash
 # install octo
 source ~/.bashrc
-cd ~/lerobot && poetry install --extras "aloha xarm pusht"
+cd ~/lerobot && poetry install --extras "aloha xarm pusht smolvla"
 
 # git safe directory
 cd ~/lerobot && git config --global --add safe.directory /root/lerobot

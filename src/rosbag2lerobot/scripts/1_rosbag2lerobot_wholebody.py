@@ -23,7 +23,8 @@ from rosbags.typesys import get_types_from_idl, get_types_from_msg
 # from lerobot.common.datasets.lerobot_dataset import LeRobotDataset
 from lerobot.datasets.lerobot_dataset import LeRobotDataset
 sys.path.append('./scripts')
-from features_all import airec_basic_features
+# from features_all import airec_basic_features
+from features_all import simple_airec_basic_features as airec_basic_features
 
 
 def main(args):
@@ -41,11 +42,12 @@ def main(args):
         image_writer_threads=4,
     )
 
-    episode_task = 'debug'
+    episode_task = 'Put the ladle in the sink.'
+    # episode_task = 'Pick up the ladle and place it in the sink.'
 
     files = glob.glob(args.rosbag_dir+'/*.bag')
     files.sort()
-
+    # files = files[18:] # HARDCODED for dataset on 250714
     # Get the topics in the rosbag file
     topics = [
         # image
@@ -54,19 +56,19 @@ def main(args):
         '/right_hand_camera/image_raw/compressed',
         # position, torque, action
         '/maharo/head/joint_states',
-        '/xreal_air2/rpy', # corresponds to online_joint_states of head
+        # '/xreal_air2/rpy', # corresponds to online_joint_states of head (relative)
         '/maharo/left_arm/upperbody/joint_states',
-        '/maharo/left_arm/upperbody/online_joint_states',
+        # '/maharo/left_arm/upperbody/online_joint_states',
         '/maharo/right_arm/upperbody/joint_states',
-        '/maharo/right_arm/upperbody/online_joint_states',
-        '/maharo/left_arm/upperbody/tip_pose',
-        '/maharo/right_arm/upperbody/tip_pose',
-        '/maharo/torso/joint_states',
+        # '/maharo/right_arm/upperbody/online_joint_states',
+        # '/maharo/left_arm/upperbody/tip_pose',
+        # '/maharo/right_arm/upperbody/tip_pose',
+        # '/maharo/torso/joint_states',
         # tactile
-        '/maharo/left_arm/upperbody/taxtile',
-        '/maharo/right_arm/upperbody/taxtile',
+        # '/maharo/left_arm/upperbody/taxtile',
+        # '/maharo/right_arm/upperbody/taxtile',
         # others
-        '/joy',
+        # '/joy',
         ]
 
     for file in files:
@@ -125,17 +127,17 @@ def main(args):
                                 msg = typestore.deserialize_ros1(rawdata, connection.msgtype)
                                 np_arr = np.frombuffer(msg.data, np.uint8)
                                 np_img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-                                current_frame['observation.image.head.left'] = np_img[:, :int(np_img.shape[1]/2)].astype(np.uint8) # 360*640
+                                # current_frame['observation.image.head.left'] = np_img[:, :int(np_img.shape[1]/2)].astype(np.uint8) # 360*640
                                 # current_frame['observation.image.head.left'] = cv2.resize(np_img[:, :int(np_img.shape[1]/2)], (64, 36)).astype(np.uint8)
                                 current_frame['observation.image.head.right'] = np_img[:, int(np_img.shape[1]/2):].astype(np.uint8) # 360*640
-                                # current_frame['observation.image.head.right'] = cv2.resize(np_img[:, :int(np_img.shape[1]/2)], (64, 36)).astype(np.uint8)
+                                # current_frame['observation.image.head.right'] = cv2.resize(np_img[:, int(np_img.shape[1]/2):], (64, 36)).astype(np.uint8)
 
                             if connection.topic == "/left_hand_camera/image_raw/compressed":
                                 msg = typestore.deserialize_ros1(rawdata, connection.msgtype)
                                 np_arr = np.frombuffer(msg.data, np.uint8)
                                 np_img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
                                 current_frame['observation.image.arm.left'] = cv2.rotate(np_img[:360].astype(np.uint8), cv2.ROTATE_180) # all images have to be the same shape
-                                # current_frame['observation.image.arm.right'] = cv2.resize(cv2.rotate(np_img[:360].astype(np.uint8), cv2.ROTATE_180), (64, 36)) # all images have to be the same shape
+                                # current_frame['observation.image.arm.left'] = cv2.resize(cv2.rotate(np_img[:360].astype(np.uint8), cv2.ROTATE_180), (64, 36)) # all images have to be the same shape
                             
                             if connection.topic == "/right_hand_camera/image_raw/compressed":
                                 msg = typestore.deserialize_ros1(rawdata, connection.msgtype)
@@ -145,54 +147,53 @@ def main(args):
                                 # current_frame['observation.image.arm.right'] = cv2.resize(cv2.rotate(np_img[:360].astype(np.uint8), cv2.ROTATE_180), (64, 36)) # all images have to be the same shape
                             
                             # position, torque, action
-                            # if connection.topic == "/maharo/head/joint_states":
-                            #     msg = typestore.deserialize_ros1(rawdata, connection.msgtype)
-                            #     current_frame['observation.state.head'] = msg.position
-                                
-                            # if connection.topic == "/maharo/left_arm/upperbody/joint_states":
-                            #     msg = typestore.deserialize_ros1(rawdata, connection.msgtype)
-                            #     # import ipdb;ipdb.set_trace()
-                            #     current_frame['observation.state.left_arm.pos'] = msg.position
-                                
-                            # if connection.topic == "/maharo/right_arm/upperbody/joint_states":
-                            #     msg = typestore.deserialize_ros1(rawdata, connection.msgtype)
-                            #     current_frame['observation.state.right_arm.pos'] = msg.position
-                                
-                            if connection.topic == "/xreal_air2/rpy":
+                            if connection.topic == "/maharo/head/joint_states":
                                 msg = typestore.deserialize_ros1(rawdata, connection.msgtype)
-                                current_frame['action.head'] = np.array([msg.y, msg.z])
-                            
-                            if connection.topic == "/maharo/left_arm/upperbody/online_joint_states":
+                                current_frame['action.head'] = msg.position
+                                # current_frame['observation.state.head'] = msg.position
+                                
+                            if connection.topic == "/maharo/left_arm/upperbody/joint_states":
                                 msg = typestore.deserialize_ros1(rawdata, connection.msgtype)
                                 current_frame['action.left_arm'] = msg.position
-                                current_frame['observation.state.left_arm.torque'] = msg.velocity
-
-                            if connection.topic == "/maharo/right_arm/upperbody/online_joint_states":
+                                # current_frame['observation.state.left_arm.pos'] = msg.position
+                                
+                            if connection.topic == "/maharo/right_arm/upperbody/joint_states":
                                 msg = typestore.deserialize_ros1(rawdata, connection.msgtype)
                                 current_frame['action.right_arm'] = msg.position
-                                current_frame['observation.state.right_arm.torque'] = msg.velocity
+                                # current_frame['observation.state.right_arm.pos'] = msg.position
+                                                            
+                            # if connection.topic == "/maharo/left_arm/upperbody/online_joint_states":
+                            #     msg = typestore.deserialize_ros1(rawdata, connection.msgtype)
+                            #     current_frame['action.left_arm'] = msg.position
+                            #     # current_frame['observation.state.left_arm.torque'] = msg.velocity
+
+                            # if connection.topic == "/maharo/right_arm/upperbody/online_joint_states":
+                            #     msg = typestore.deserialize_ros1(rawdata, connection.msgtype)
+                            #     current_frame['action.right_arm'] = msg.position
+                            #     # current_frame['observation.state.right_arm.torque'] = msg.velocity
                             
-                            if connection.topic == "/maharo1/lowerbody/online_joint_states":
-                                msg = typestore.deserialize_ros1(rawdata, connection.msgtype)
-                                import ipdb;ipdb.set_trace()
-                                current_frame['observation.state.base'] = msg.position
+                            # if connection.topic == "/maharo1/lowerbody/online_joint_states":
+                            #     msg = typestore.deserialize_ros1(rawdata, connection.msgtype)
+                            #     import ipdb;ipdb.set_trace()
                                 
-                            # tactile
-                            if connection.topic == "/maharo/left_arm/upperbody/taxtile":
-                                msg = typestore.deserialize_ros1(rawdata, connection.msgtype)
-                                current_frame['observation.state.left_arm.tactile'] = msg.position
+                            # # tactile
+                            # if connection.topic == "/maharo/left_arm/upperbody/taxtile":
+                            #     msg = typestore.deserialize_ros1(rawdata, connection.msgtype)
+                            #     current_frame['observation.state.left_arm.tactile'] = msg.position[:2] # 2D for each gripper
                             
-                            if connection.topic == "/maharo/right_arm/upperbody/taxtile":
-                                msg = typestore.deserialize_ros1(rawdata, connection.msgtype)
-                                current_frame['observation.state.right_arm.tactile'] = msg.position
+                            # if connection.topic == "/maharo/right_arm/upperbody/taxtile":
+                            #     msg = typestore.deserialize_ros1(rawdata, connection.msgtype)
+                            #     current_frame['observation.state.right_arm.tactile'] = msg.position[:2] # 2D for each gripper
                             
                             break
                 
                 # current_frame['next.done'] = torch.tensor(False, dtype=torch.bool)
-                if type(last_frame['observation.state.left_arm.pos']) != NoneType \
-                    and type(last_frame['observation.state.right_arm.pos']) != NoneType \
-                    and type(last_frame['observation.state.head']) != NoneType:
-                        frames.append(current_frame)
+                if not (
+                        isinstance(current_frame['observation.state.head'], NoneType) \
+                        or isinstance(current_frame['observation.state.left_arm.pos'], NoneType) \
+                        or isinstance(current_frame['observation.state.right_arm.pos'], NoneType)
+                        ):
+                    frames.append(current_frame)
                 current_frame['observation.state.head'] = current_frame['action.head']
                 current_frame['observation.state.left_arm.pos'] = current_frame['action.left_arm']
                 current_frame['observation.state.right_arm.pos'] = current_frame['action.right_arm']
@@ -203,7 +204,15 @@ def main(args):
 
             # frames[-1]['next.done'] = torch.tensor(True, dtype=torch.bool)
             for frame in frames:
-                frame = {k: v for k, v in frame.items() if type(v) != NoneType}
+                frame = {k: v for k, v in frame.items() if not isinstance(v, NoneType)}
+                state_head = frame.pop('observation.state.head')
+                state_left_arm_pos = frame.pop('observation.state.left_arm.pos')
+                state_right_arm_pos = frame.pop('observation.state.right_arm.pos')
+                frame["observation.state"] = np.concatenate([state_head, state_left_arm_pos, state_right_arm_pos], axis=-1)
+                action_head = frame.pop('action.head')
+                action_left_arm = frame.pop('action.left_arm')
+                action_right_arm = frame.pop('action.right_arm')
+                frame["action"] = np.concatenate([action_head, action_left_arm, action_right_arm], axis=-1)
                 dataset.add_frame(frame, task=episode_task)
 
             dataset.save_episode()

@@ -1,7 +1,3 @@
-'''
-detailed features of Airec-basic
-'''
-
 airec_basic_features = {
     # image
     'observation.image.head.left': {
@@ -65,7 +61,7 @@ airec_basic_features = {
     #     "dtype": "float64",
     #     "shape": (3,),
     # },
-    # effort
+    # torque
     'observation.state.left_arm.torque': {
         "dtype": "float64",
         "shape": (9,),
@@ -129,6 +125,95 @@ airec_basic_features = {
 }
 
 
+
+
+
+simple_airec_basic_features = {
+    # image
+    # 'observation.image.head.left': {
+    #     'dtype': 'video',
+    #     # 'shape': [360, 1280, 3],
+    #     'shape': [360, 640, 3],
+    #     # 'shape': [36, 64, 3],
+    #     "names": ["height", "width", "channel"],
+    #     "info": {
+    #         "video.fps": 10,
+    #         "video.is_depth_map": "false",
+    #         "has_audio": "false",
+    #     },
+    # },
+    'observation.image.head.right': {
+        'dtype': 'video',
+        # 'shape': [360, 1280, 3],
+        'shape': [360, 640, 3],
+        # 'shape': [36, 64, 3],
+        "names": ["height", "width", "channel"],
+        "info": {
+            "video.fps": 10,
+            "video.is_depth_map": "false",
+            "has_audio": "false",
+        },
+    },
+    'observation.image.arm.left': {
+        'dtype': 'video',
+        # 'shape': [480, 640, 3],
+        'shape': [360, 640, 3],
+        # 'shape': [36, 64, 3],
+        "names": ["height", "width", "channel"],
+        "info": {
+            "video.fps": 10,
+            "video.is_depth_map": "false",
+            "has_audio": "false",
+        },
+    },
+    'observation.image.arm.right': {
+        'dtype': 'video',
+        # 'shape': [480, 640, 3],
+        'shape': [360, 640, 3],
+        # 'shape': [36, 64, 3],
+        "names": ["height", "width", "channel"],
+        "info": {
+            "video.fps": 10,
+            "video.is_depth_map": "false",
+            "has_audio": "false",
+        },
+    },
+    # position
+    'observation.state': {
+        "dtype": "float64",
+        "shape": (20,),
+    },
+    # action
+    'action': {
+        "dtype": "float64",
+        "shape": (20,),
+    },
+    "episode_index": {
+        "dtype": "int64",
+        "shape": [1],
+        "names": None,
+    },
+    "frame_index": {
+        "dtype": "int64",
+        "shape": [1],
+        "names": None,
+    },
+    "timestamp": {
+        "dtype": "float32",
+        "shape": [1],
+        "names": None,
+    },
+    # "next.done": {
+    #     "dtype": "bool",
+    #     "shape": (1,),
+    #     "names": None,
+    # },
+    "index": {
+        "dtype": "int64",
+        "shape": [1],
+        "names": None,
+    },
+}
 
 
 
