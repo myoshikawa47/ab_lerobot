@@ -76,3 +76,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Set EGL as the rendering backend for MuJoCo
 ENV MUJOCO_GL="egl"
+
+# ffmpeg
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg libavutil-dev libavcodec-dev libavformat-dev libswscale-dev \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*

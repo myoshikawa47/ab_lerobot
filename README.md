@@ -4,6 +4,7 @@
 
 ### インストール
 `docker/README.md`を参照
+メモ：datasetsディレクトリのマウント元をサーバ上の共有ディレクトリに統一できたら便利そう
 
 ### rosbag2lerobot変換
 ```bash
@@ -17,21 +18,33 @@ cd src/rosbag2lerobot
 python3 ./scripts/vis_dataset.py --data_dir path/to/lerobot/data --out_dir path/to/output/dir --idx 0
 ```
 
-### SmolVLAの学習
+### 学習
+使用するGPUデバイスをCUDA_VISIBLE_DEVICESで1つ指定（lerobotはマルチGPU非対応なので、複数を指定するとエラーが出る）。
 ```bash
-CUDA_VISIBLE_DEVICES=0 python -m lerobot.scripts.train --policy.path=lerobot/smolvla_base --dataset.root=path/to/lerobot/data  --policy.push_to_hub=false --wandb.enable=true --dataset.repo_id=null
+# SmolVLA
+CUDA_VISIBLE_DEVICES=<device> python -m lerobot.scripts.train --policy.path=lerobot/smolvla_base --dataset.root=path/to/lerobot/data  --policy.push_to_hub=false --wandb.enable=true --dataset.repo_id=null
+
+# ACT
+# Without Temporal Ensembling
+CUDA_VISIBLE_DEVICES=<device> python -m lerobot.scripts.train --policy.type=act --dataset.root=path/to/lerobot/data --policy.push_to_hub=false --wandb.enable=true --dataset.repo_id=null
+# With Temporal Ensembling
+CUDA_VISIBLE_DEVICES=<device> python -m lerobot.scripts.train --policy.type=act --dataset.root=path/to/lerobot/data --policy.push_to_hub=false --wandb.enable=true --dataset.repo_id=null --policy.temporal_ensemble_coeff=0.01 --policy.n_action_steps=1
+
+# Diffusion Policy
+CUDA_VISIBLE_DEVICES=<device> python -m lerobot.scripts.train --policy.type=diffusion --dataset.root=path/to/lerobot/data --policy.push_to_hub=false --wandb.enable=true --dataset.repo_id=null
 ```
 
 ### オフラインテスト
 ```bash
 cd src/rosbag2lerobot
-python3 ./scripts/test.py --ckpt_folder path/to/ckpt/folder --data_dir path/to/lerobot/data --device 0 --idx 0
+python3 ./scripts/test.py --ckpt_folder path/to/ckpt/folder --data_dir path/to/lerobot/data --out_dir path/to/out/dir --device 0 --idx 0
 ```
 
 ## メモ
-- カメラ画像は3つまで学習可能、4つ目以降は無視される
+- カメラ画像は3つまで学習可能で、4つ目以降は無視されるらしい（真偽は未検証）
 
 ## TODO
+- SARNN学習環境の追加（準備中）
 - observation.state, actionをそれぞれcatする前の状態で保存しておき、引数などで指定したモダリティだけ取り出して学習できるようにしたい
 - 非同期推論の実装（https://github.com/huggingface/lerobot/tree/main/tests/async_inference?）
 
