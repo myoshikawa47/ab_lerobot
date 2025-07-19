@@ -3,8 +3,7 @@
 ## 使い方
 
 ### インストール
-`docker/README.md`を参照
-メモ：datasetsディレクトリのマウント元をサーバ上の共有ディレクトリに統一できたら便利そう
+`docker/README.md`を参照 (メモ：datasetsディレクトリのマウント元をサーバ上の共有ディレクトリに統一できたら便利そう)
 
 ### rosbag2lerobot変換
 ```bash
